@@ -5,6 +5,7 @@ import locale
 import re
 import sre_compile
 import string
+import sys
 import unittest
 import warnings
 from re import Scanner
@@ -2024,6 +2025,8 @@ ELSE
         self.assertTrue(re.match(b'(?Li)\xc5', b'\xe5'))
         self.assertTrue(re.match(b'(?Li)\xe5', b'\xc5'))
 
+    @unittest.skipIf(sys.platform.startswith("sunos"),
+                     "test doesn't work well on sparc Solaris")
     def check_en_US_utf8(self):
         locale.setlocale(locale.LC_CTYPE, 'en_US.utf8')
         self.assertTrue(re.match(b'\xc5\xe5', b'\xc5\xe5', re.L|re.I))
@@ -2033,6 +2036,8 @@ ELSE
         self.assertIsNone(re.match(b'(?Li)\xc5', b'\xe5'))
         self.assertIsNone(re.match(b'(?Li)\xe5', b'\xc5'))
 
+    @unittest.skipIf(sys.platform.startswith("sunos"),
+                     "test doesn't work well on sparc Solaris")
     def test_locale_compiled(self):
         oldlocale = locale.setlocale(locale.LC_CTYPE)
         self.addCleanup(locale.setlocale, locale.LC_CTYPE, oldlocale)
