@@ -339,6 +339,8 @@ class NormalizationTest(unittest.TestCase):
         TESTDATAFILE = "NormalizationTest.txt"
         TESTDATAURL = f"http://www.pythontest.net/unicode/{unicodedata.unidata_version}/{TESTDATAFILE}"
 
+        if sys.platform.startswith("sunos"):
+            self.skipTest("test needs to download additional data")
         # Hit the exception early
         try:
             testdata = open_urlresource(TESTDATAURL, encoding="utf-8",
