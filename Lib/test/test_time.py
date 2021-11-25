@@ -105,6 +105,8 @@ class TimeTestCase(unittest.TestCase):
         b = time.clock_gettime(time.CLOCK_MONOTONIC)
         self.assertLessEqual(a, b)
 
+    @unittest.skipIf(sys.platform.startswith("sunos"),
+                     "pthread_getcpuclockid assumptions are not true on Solaris")
     @unittest.skipUnless(hasattr(time, 'pthread_getcpuclockid'),
                          'need time.pthread_getcpuclockid()')
     @unittest.skipUnless(hasattr(time, 'clock_gettime'),
