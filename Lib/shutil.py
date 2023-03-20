@@ -50,7 +50,7 @@ elif _WINDOWS:
     import nt
 
 COPY_BUFSIZE = 1024 * 1024 if _WINDOWS else 64 * 1024
-_USE_CP_SENDFILE = hasattr(os, "sendfile") and sys.platform.startswith("linux")
+_USE_CP_SENDFILE = hasattr(os, "sendfile") and sys.platform.startswith(("linux", "sunos"))
 _HAS_FCOPYFILE = posix and hasattr(posix, "_fcopyfile")  # macOS
 
 # CMD defaults in Windows 10
@@ -114,7 +114,7 @@ def _fastcopy_fcopyfile(fsrc, fdst, flags):
 def _fastcopy_sendfile(fsrc, fdst):
     """Copy data from one regular mmap-like fd to another by using
     high-performance sendfile(2) syscall.
-    This should work on Linux >= 2.6.33 only.
+    This should work on Linux >= 2.6.33 and Solaris only.
     """
     # Note: copyfileobj() is left alone in order to not introduce any
     # unexpected breakage. Possible risks by using zero-copy calls
@@ -271,7 +271,7 @@ def copyfile(src, dst, *, follow_symlinks=True):
                             return dst
                         except _GiveupOnFastCopy:
                             pass
-                    # Linux
+                    # Linux / Solaris
                     elif _USE_CP_SENDFILE:
                         try:
                             _fastcopy_sendfile(fsrc, fdst)
