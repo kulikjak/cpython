@@ -4,13 +4,13 @@
 
 #include <stdlib.h>
 #include <string.h>
-#if defined(__APPLE__) || defined(HAVE_PTHREAD_DESTRUCTOR)
+#if defined(__APPLE__)
 #define destructor xxdestructor
 #endif
 #ifndef HAVE_PTHREAD_STUBS
 #  include <pthread.h>
 #endif
-#if defined(__APPLE__) || defined(HAVE_PTHREAD_DESTRUCTOR)
+#if defined(__APPLE__)
 #undef destructor
 #endif
 #include <signal.h>

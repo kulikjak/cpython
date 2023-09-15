@@ -16252,10 +16252,6 @@ printf "%s\n" "#define _POSIX_THREADS 1" >>confdefs.h
 
       # Bug 662787: Using semaphores causes unexplicable hangs on Solaris 8.
       case  $ac_sys_system/$ac_sys_release in
-      SunOS/5.6)
-printf "%s\n" "#define HAVE_PTHREAD_DESTRUCTOR 1" >>confdefs.h
-
-		       ;;
       SunOS/5.8)
 printf "%s\n" "#define HAVE_BROKEN_POSIX_SEMAPHORES 1" >>confdefs.h
 
