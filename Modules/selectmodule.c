@@ -1106,6 +1106,54 @@ devpoll_get_closed(PyObject *op, void *Py_UNUSED(closure))
     Py_RETURN_FALSE;
 }
 
+static PyObject*
+devpoll_get_buffer_size(devpollObject *self, void *Py_UNUSED(ignored))
+{
+    return PyLong_FromLong(self->out_size);
+}
+
+static int
+devpoll_set_buffer_size(devpollObject *self, PyObject *value, void *Py_UNUSED(ignored))
+{
+    if (devpoll_flush(self))
+        return -1;
+
+    int newval = PyLong_AsInt(value);
+    if (newval <= 0) {
+        PyErr_SetString(PyExc_ValueError, "value must be positive");
+        return -1;
+    }
+
+    /*
+    ** If we try to process more that getrlimit()
+    ** fds, the kernel will give an error, so
+    ** we check the limit here.
+    */
+    struct rlimit limit;
+    int limit_result = getrlimit(RLIMIT_NOFILE, &limit);
+    if (limit_result == -1) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        return -1;
+    }
+
+    if (newval > limit.rlim_cur) {
+        PyErr_SetString(PyExc_ValueError, "value must be <= than OPEN_MAX limit");
+        return -1;
+    }
+
+    struct pollfd *out_fds = PyMem_NEW(struct pollfd, newval);
+    if (out_fds == NULL) {
+        PyErr_NoMemory();
+        return -1;
+    }
+
+    PyMem_Free(self->out_fds);
+    self->out_fds = out_fds;
+    self->out_size = newval;
+
+    return 0;
+}
+
 /*[clinic input]
 @critical_section
 select.devpoll.fileno
@@ -1125,6 +1173,10 @@ select_devpoll_fileno_impl(devpollObject *self)
 static PyGetSetDef devpoll_getsetlist[] = {
     {"closed", devpoll_get_closed, NULL,
      "True if the devpoll object is closed"},
+    {"buffer_size",
+     (getter)devpoll_get_buffer_size,
+     (setter)devpoll_set_buffer_size,
+     "size of the underlying file descriptor buffer"},
     {0},
 };
 
