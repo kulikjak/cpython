@@ -926,10 +926,19 @@ cmath_phase_impl(PyObject *module, Py_complex z)
 
     errno = 0;
     phi = atan2(z.imag, z.real); /* should not cause any exception */
-    if (errno != 0)
+    if (errno != 0) {
+#if defined(__sun)
+        /* On Solaris, atan2 incorrectly sets errno when both arguments are
+           zero. The result is correct though, so we can safely ignore the
+           errno and return it. */
+        if ((z.imag == 0.0 || z.imag == -0.0) && (z.real == 0.0 || z.real == -0.0)) {
+            return PyFloat_FromDouble(phi);
+        }
+#endif
         return math_error();
-    else
+    } else {
         return PyFloat_FromDouble(phi);
+    }
 }
 
 /*[clinic input]
