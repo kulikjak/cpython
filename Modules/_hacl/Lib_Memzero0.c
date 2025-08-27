@@ -4,6 +4,8 @@
 #endif
 #endif
 
+#include "pyconfig.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -31,7 +33,7 @@
 #include <string.h>
 #endif
 
-#if defined(__FreeBSD__) || defined(__NetBSD__)
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__sun)
 #include <strings.h>
 #endif
 
@@ -57,7 +59,7 @@ void Lib_Memzero0_memzero0(void *dst, uint64_t len) {
     SecureZeroMemory(dst, len_);
   #elif defined(__APPLE__) && defined(__MACH__) && defined(APPLE_HAS_MEMSET_S)
     memset_s(dst, len_, 0, len_);
-  #elif (defined(__linux__) && !defined(LINUX_NO_EXPLICIT_BZERO)) || defined(__FreeBSD__) || defined(__OpenBSD__)
+  #elif (defined(__linux__) && !defined(LINUX_NO_EXPLICIT_BZERO)) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__sun)
     explicit_bzero(dst, len_);
   #elif defined(__NetBSD__)
     explicit_memset(dst, 0, len_);
