@@ -83,6 +83,7 @@ def run_readelf(cmd):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            errors='replace',
             env=env,
         )
     except OSError:
@@ -476,24 +477,34 @@ class CheckDtraceProbes(unittest.TestCase):
                         binary = libpython_path
                         break
 
+        if sys.platform == "sunos5":
+            # Solaris keeps the tracing metadata in a special
+            # ELF section called .SUNW_dof
+            return run_readelf(["readelf", "-p", ".SUNW_dof", binary])
         return run_readelf(["readelf", "-n", binary])
+
+    def assert_probe_present(self, probe_name, readelf_output):
+        if sys.platform == "sunos5":
+            self.assertIn(probe_name.replace("__", "-"), readelf_output)
+        else:
+            self.assertIn(f"Name: {probe_name}", readelf_output)
 
     def test_check_probes(self):
         readelf_output = self.get_readelf_output()
 
         available_probe_names = [
-            "Name: import__find__load__done",
-            "Name: import__find__load__start",
-            "Name: audit",
-            "Name: gc__start",
-            "Name: gc__done",
-            "Name: function__entry",
-            "Name: function__return",
+            "import__find__load__done",
+            "import__find__load__start",
+            "audit",
+            "gc__start",
+            "gc__done",
+            "function__entry",
+            "function__return",
         ]
 
         for probe_name in available_probe_names:
             with self.subTest(probe_name=probe_name):
-                self.assertIn(probe_name, readelf_output)
+                self.assert_probe_present(probe_name, readelf_output)
 
     @unittest.expectedFailure
     def test_missing_probes(self):
@@ -501,12 +512,12 @@ class CheckDtraceProbes(unittest.TestCase):
 
         # Missing probes will be added in the future.
         missing_probe_names = [
-            "Name: line",
+            "line",
         ]
 
         for probe_name in missing_probe_names:
             with self.subTest(probe_name=probe_name):
-                self.assertIn(probe_name, readelf_output)
+                self.assert_probe_present(probe_name, readelf_output)
 
 
 if __name__ == '__main__':
